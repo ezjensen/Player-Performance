@@ -1,0 +1,56 @@
+Requirements: PlayerPerformancePDF Project
+
+Overview
+
+This project automates the generation of individual PDF performance reports for athletes listed in a Google Sheet. It provides a user-friendly web interface for file selection, processes players in batches to avoid script timeouts, and logs all outcomes for transparency and troubleshooting.
+
+Functional Requirements
+
+1. File Selection
+ • The user launches a web app and is prompted to select a Google Sheet using the Google Picker API.
+ • The selected file must contain at least two sheets: “Profiles” (with athlete data) and “Dashboard” (used for report generation).
+ • The program will prompt for a destination where to save the PDF files after generation.
+
+2. Data Extraction
+ • The script reads the “Profiles” sheet, extracting player names and their associated teams from columns A and B, starting at row 2.
+ • Only rows where both name and team are present are processed.
+
+3. PDF Generation
+ • For each player:
+ ▫ The script sets the player’s name and team in designated cells on the “Dashboard” sheet.
+ ▫ A formula (customizable by the user) is set in cell D8 to calculate an overall score.
+ ▫ The “Dashboard” sheet is exported as a PDF using the Google Sheets export endpoint.
+ ▫ The PDF file is named using the format: `{Team}_{PlayerName}.pdf` (e.g., Wildcats_Jane Doe.pdf`).
+ ▫ The PDF is saved in a folder destination that was chosen during the file selection.
+ ▫ If a PDF with the same name already exists in the folder, the script skips generation for that player.
+
+4. Logging
+ • All results (success, skip, failure) are logged in a sheet named “PDF_Log” in the selected spreadsheet.
+ • Each log entry includes: timestamp, player name, team, status, message, and a link to the generated PDF (if successful).
+
+5. Error Handling
+ • If required sheets (“Profiles” or “Dashboard”) are missing, the script returns an error and halts processing.
+ • All errors encountered during processing are logged in “PDF_Log” with relevant details.
+
+6. Batch Processing & Timeouts
+ • The script is designed to process players in sequence, with a delay between PDF generations to avoid Google Apps Script timeouts and API rate limits.
+
+7. User Interface
+ • The app provides a button for file selection, displays progress messages, and summarizes results at the end of processing.
+ • Modern app with modern UI and development language
+ • Ability to change from light, dark, or system themes
+ • Ability to add company logo to app in settings
+
+Customization Options
+ • The range exported to PDF and the PDF formatting options can be modified as needed.
+ • The folder name for storing PDFs can be changed.
+
+Limitations
+ • The script assumes the presence and structure of “Profiles” and “Dashboard” sheets.
+ • Only Google Sheets files can be selected via the Picker.
+ • PDF generation may be rate-limited by Google APIs; delays are inserted to mitigate this.
+
+Security & Privacy
+ • Only users authorized via OAuth can access their Drive files and run the script.
+ • All generated PDFs and logs are stored in the user’s Google Drive and selected spreadsheet.
+ • Run on Windows 10 and higher without any security concerns
