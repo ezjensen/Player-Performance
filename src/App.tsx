@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, LogOut, FileText, Users, AlertCircle } from 'lucide-react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  StatusBar,
+  Platform,
+} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// Import components (will need to be converted)
 import { FilePicker } from './components/FilePicker';
 import { ProgressBar } from './components/ProgressBar';
 import { Settings } from './components/Settings';
@@ -17,6 +32,8 @@ import {
   logToSheet 
 } from './utils/sheetsApi';
 import { Player, LogEntry, ProcessingProgress } from './types';
+
+const Drawer = createDrawerNavigator();
 
 const AppContent: React.FC = () => {
   const { settings } = useSettings();
@@ -160,160 +177,89 @@ const AppContent: React.FC = () => {
     setIsProcessing(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="flex items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
-          <span className="text-gray-700 dark:text-gray-300">Initializing...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="max-w-md w-full mx-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+  // Home Screen Component
+  const HomeScreen = () => (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
+        {isLoading ? (
+          <View style={styles.centeredContainer}>
+            <Text style={styles.loadingText}>Initializing...</Text>
+          </View>
+        ) : !isAuthenticated ? (
+          <View style={styles.authContainer}>
             {settings.companyLogo && (
-              <div className="mb-6">
-                <img
-                  src={settings.companyLogo}
-                  alt="Company Logo"
-                  className="mx-auto max-h-16 max-w-48 object-contain"
-                />
-              </div>
+              <View style={styles.logoContainer}>
+                {/* Logo would be displayed here */}
+                <Text style={styles.logoPlaceholder}>Company Logo</Text>
+              </View>
             )}
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            
+            <Text style={styles.title}>
               {settings.companyName || 'Player Performance PDF Generator'}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-8">
+            </Text>
+            
+            <Text style={styles.subtitle}>
               Generate individual PDF performance reports for athletes from Google Sheets data
-            </p>
+            </Text>
             
             {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
-                  <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
-                </div>
-              </div>
+              <View style={styles.errorContainer}>
+                <Icon name="error" size={20} color="#dc2626" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
             )}
             
-            <button
-              onClick={handleSignIn}
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
-            >
-              Sign in with Google
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              {settings.companyLogo && (
-                <img
-                  src={settings.companyLogo}
-                  alt="Company Logo"
-                  className="h-8 w-auto mr-4"
-                />
-              )}
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {settings.companyName || 'Player Performance PDF Generator'}
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowSettings(true)}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <SettingsIcon className="h-5 w-5" />
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
-              <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
-            </div>
-          </div>
-        )}
-
-        {!selectedFile ? (
-          <div className="text-center">
-            <FilePicker onFileSelected={handleFileSelected} isLoading={isLoading} />
-          </div>
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
+              onPress={handleSignIn}
+              disabled={isLoading}>
+              <Text style={styles.buttonText}>Sign in with Google</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                    <FileText className="h-5 w-5 mr-2" />
-                    {selectedFile.name}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1">
-                    <Users className="h-4 w-4 mr-1" />
-                    {players.length} players found
-                  </p>
-                </div>
-                {!isProcessing && !progress.isComplete && (
-                  <button
-                    onClick={processPDFGeneration}
-                    disabled={players.length === 0}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    Generate PDFs
-                  </button>
-                )}
-              </div>
-              
-              {players.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {players.slice(0, 6).map((player, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-gray-50 dark:bg-gray-700 rounded border"
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {player.name}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">
-                        {player.team}
-                      </div>
-                    </div>
-                  ))}
-                  {players.length > 6 && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border flex items-center justify-center">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        +{players.length - 6} more
-                      </span>
-                    </div>
-                  )}
-                </div>
+          <View style={styles.mainContent}>
+            <View style={styles.header}>
+              {settings.companyLogo && (
+                <Text style={styles.headerLogo}>Logo</Text>
               )}
-            </div>
+              <Text style={styles.headerTitle}>
+                {settings.companyName || 'Player Performance PDF Generator'}
+              </Text>
+              <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+                <Icon name="logout" size={20} color="#6b7280" />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Icon name="error" size={20} color="#dc2626" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <FilePicker onFileSelected={handleFileSelected} isLoading={isLoading} />
+
+            {selectedFile && (
+              <View style={styles.fileInfo}>
+                <View style={styles.fileInfoHeader}>
+                  <Icon name="description" size={24} color="#3b82f6" />
+                  <Text style={styles.fileInfoTitle}>{selectedFile.name}</Text>
+                </View>
+                <Text style={styles.fileInfoSubtitle}>
+                  <Icon name="group" size={16} color="#6b7280" />
+                  {` ${players.length} players found`}
+                </Text>
+                
+                {!isProcessing && !progress.isComplete && players.length > 0 && (
+                  <TouchableOpacity
+                    style={[styles.button, styles.primaryButton]}
+                    onPress={processPDFGeneration}>
+                    <Text style={styles.buttonText}>Generate PDFs</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
 
             {(isProcessing || progress.isComplete) && (
               <ProgressBar
@@ -325,59 +271,333 @@ const AppContent: React.FC = () => {
             )}
 
             {progress.isComplete && logs.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Processing Results
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
+              <View style={styles.resultsContainer}>
+                <Text style={styles.resultsTitle}>Processing Results</Text>
+                <ScrollView style={styles.logsList}>
                   {logs.map((log, index) => (
-                    <div
+                    <View
                       key={index}
-                      className={`p-3 rounded border ${
-                        log.status === 'success'
-                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {log.playerName} ({log.team})
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            {log.message}
-                          </div>
-                        </div>
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            log.status === 'success'
-                              ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                              : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                          }`}
-                        >
+                      style={[
+                        styles.logEntry,
+                        log.status === 'success' ? styles.successLog : styles.errorLog
+                      ]}>
+                      <Text style={styles.logPlayerName}>
+                        {log.playerName} ({log.team})
+                      </Text>
+                      <Text style={styles.logMessage}>{log.message}</Text>
+                      <View style={styles.logStatus}>
+                        <Text style={[
+                          styles.statusBadge,
+                          log.status === 'success' ? styles.successBadge : styles.errorBadge
+                        ]}>
                           {log.status}
-                        </span>
-                      </div>
-                    </div>
+                        </Text>
+                      </View>
+                    </View>
                   ))}
-                </div>
-              </div>
+                </ScrollView>
+              </View>
             )}
-          </div>
+          </View>
         )}
-      </main>
+      </ScrollView>
+    </SafeAreaView>
+  );
 
-      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
-    </div>
+  // File Selection Screen
+  const FileSelectionScreen = () => (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.screenTitle}>File Selection</Text>
+      <FilePicker onFileSelected={handleFileSelected} isLoading={isLoading} />
+    </SafeAreaView>
+  );
+
+  // Processing Screen
+  const ProcessingScreen = () => (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.screenTitle}>Processing</Text>
+      {(isProcessing || progress.isComplete) && (
+        <ProgressBar
+          current={progress.current}
+          total={progress.total}
+          currentPlayer={progress.currentPlayer}
+          isComplete={progress.isComplete}
+        />
+      )}
+    </SafeAreaView>
+  );
+
+  // Settings Screen
+  const SettingsScreen = () => (
+    <SafeAreaView style={styles.container}>
+      <Settings />
+    </SafeAreaView>
+  );
+
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          drawerStyle: { backgroundColor: Platform.OS === 'ios' ? '#f9fafb' : '#ffffff' },
+          drawerActiveTintColor: '#3b82f6',
+          drawerInactiveTintColor: '#6b7280',
+        }}>
+        <Drawer.Screen 
+          name="Home" 
+          component={HomeScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Icon name="home" color={color} size={size} />
+            ),
+          }}
+        />
+        <Drawer.Screen 
+          name="File Selection" 
+          component={FileSelectionScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Icon name="description" color={color} size={size} />
+            ),
+          }}
+        />
+        <Drawer.Screen 
+          name="Processing" 
+          component={ProcessingScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Icon name="play-arrow" color={color} size={size} />
+            ),
+          }}
+        />
+        <Drawer.Screen 
+          name="Settings" 
+          component={SettingsScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Icon name="settings" color={color} size={size} />
+            ),
+          }}
+        />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 };
 
-function App() {
+const App: React.FC = () => {
   return (
-    <SettingsProvider>
-      <AppContent />
-    </SettingsProvider>
+    <SafeAreaProvider>
+      <StatusBar
+        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'light-content'}
+        backgroundColor="#ffffff"
+      />
+      <SettingsProvider>
+        <AppContent />
+      </SettingsProvider>
+    </SafeAreaProvider>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  authContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  logoContainer: {
+    marginBottom: 24,
+  },
+  logoPlaceholder: {
+    fontSize: 16,
+    color: '#6b7280',
+    fontStyle: 'italic',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#dc2626',
+    marginLeft: 8,
+    flex: 1,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButton: {
+    backgroundColor: '#3b82f6',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  mainContent: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+  },
+  headerLogo: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    flex: 1,
+    marginLeft: 16,
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  signOutText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginLeft: 4,
+  },
+  fileInfo: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  fileInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  fileInfoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginLeft: 8,
+  },
+  fileInfoSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 16,
+  },
+  resultsContainer: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  resultsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  logsList: {
+    maxHeight: 300,
+  },
+  logEntry: {
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+  },
+  successLog: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  errorLog: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+  },
+  logPlayerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  logMessage: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  logStatus: {
+    alignSelf: 'flex-start',
+  },
+  statusBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    textTransform: 'uppercase',
+  },
+  successBadge: {
+    color: '#065f46',
+    backgroundColor: '#d1fae5',
+  },
+  errorBadge: {
+    color: '#991b1b',
+    backgroundColor: '#fee2e2',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    padding: 16,
+    textAlign: 'center',
+  },
+});
 
 export default App;

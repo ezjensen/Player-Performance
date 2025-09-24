@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, Upload } from 'lucide-react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface FilePickerProps {
   onFileSelected: (fileId: string, fileName: string) => void;
@@ -12,69 +20,151 @@ export const FilePicker: React.FC<FilePickerProps> = ({
 }) => {
   const [isPickerLoading, setIsPickerLoading] = useState(false);
 
-  const openPicker = () => {
-    if (!window.google || !window.gapi) {
-      alert('Google APIs not loaded. Please refresh the page and try again.');
-      return;
+  const openPicker = async () => {
+    // For React Native, we'd use a different approach for Google Picker
+    // This is a simplified version that shows a mock picker
+    try {
+      setIsPickerLoading(true);
+      
+      // Simulate file picker dialog
+      Alert.alert(
+        'Select Google Sheet',
+        'Choose a Google Sheet containing athlete profiles and dashboard',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setIsPickerLoading(false),
+          },
+          {
+            text: 'Select Demo File',
+            onPress: () => {
+              // Simulate selecting a file
+              setTimeout(() => {
+                onFileSelected('demo-file-id', 'Player Performance Data.xlsx');
+                setIsPickerLoading(false);
+              }, 1000);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('File picker error:', error);
+      Alert.alert('Error', 'Failed to open file picker');
+      setIsPickerLoading(false);
     }
-
-    setIsPickerLoading(true);
-
-    const picker = new window.google.picker.PickerBuilder()
-      .addView(
-        new window.google.picker.DocsView(window.google.picker.ViewId.SPREADSHEETS)
-          .setIncludeFolders(true)
-          .setSelectFolderEnabled(false)
-      )
-      .setOAuthToken(window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token)
-      .setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY || '')
-      .setCallback((data: any) => {
-        setIsPickerLoading(false);
-        if (data.action === window.google.picker.Action.PICKED) {
-          const file = data.docs[0];
-          onFileSelected(file.id, file.name);
-        }
-      })
-      .build();
-
-    picker.setVisible(true);
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
-        <div className="text-center mb-6">
-          <FileSpreadsheet className="mx-auto h-12 w-12 text-blue-500 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Select Google Sheet
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Icon name="description" size={48} color="#3b82f6" style={styles.icon} />
+          <Text style={styles.title}>Select Google Sheet</Text>
+          <Text style={styles.subtitle}>
             Choose a Google Sheet containing athlete profiles and dashboard
-          </p>
-        </div>
+          </Text>
+        </View>
         
-        <button
-          onClick={openPicker}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            (isLoading || isPickerLoading) && styles.buttonDisabled
+          ]}
+          onPress={openPicker}
           disabled={isLoading || isPickerLoading}
-          className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isPickerLoading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Opening Picker...
-            </>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#ffffff" />
+              <Text style={styles.buttonText}>Opening Picker...</Text>
+            </View>
           ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Choose File
-            </>
+            <View style={styles.buttonContent}>
+              <Icon name="cloud-upload" size={20} color="#ffffff" />
+              <Text style={styles.buttonText}>Choose File</Text>
+            </View>
           )}
-        </button>
+        </TouchableOpacity>
         
-        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+        <Text style={styles.requirement}>
           Required sheets: "Profiles" and "Dashboard"
-        </div>
-      </div>
-    </div>
+        </Text>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    maxWidth: 400,
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  icon: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  button: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 150,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  requirement: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 16,
+  },
+});

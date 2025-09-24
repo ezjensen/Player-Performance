@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Appearance, ColorSchemeName } from 'react-native';
 import { AppSettings } from '../types';
 
 interface SettingsContextType {
@@ -22,45 +24,67 @@ interface SettingsProviderProps {
 }
 
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) => {
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('player-performance-settings');
-    return saved ? JSON.parse(saved) : { theme: 'system' };
-  });
-
+  const [settings, setSettings] = useState<AppSettings>({ theme: 'system' });
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Load settings on mount
   useEffect(() => {
-    const updateTheme = () => {
-      let shouldBeDark = false;
-      
-      if (settings.theme === 'dark') {
-        shouldBeDark = true;
-      } else if (settings.theme === 'system') {
-        shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      }
-      
-      setIsDarkMode(shouldBeDark);
-      
-      if (shouldBeDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
+    loadSettings();
+  }, []);
 
-    updateTheme();
+  // Listen to system theme changes
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      updateTheme(colorScheme);
+    });
 
-    if (settings.theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', updateTheme);
-      return () => mediaQuery.removeEventListener('change', updateTheme);
-    }
+    return () => subscription?.remove();
   }, [settings.theme]);
 
-  const updateSettings = (newSettings: Partial<AppSettings>) => {
-    const updatedSettings = { ...settings, ...newSettings };
-    setSettings(updatedSettings);
-    localStorage.setItem('player-performance-settings', JSON.stringify(updatedSettings));
+  const loadSettings = async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem('player-performance-settings');
+      if (savedSettings) {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+        updateTheme(Appearance.getColorScheme());
+      } else {
+        updateTheme(Appearance.getColorScheme());
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      updateTheme(Appearance.getColorScheme());
+    }
+  };
+
+  const updateTheme = (systemColorScheme: ColorSchemeName) => {
+    let shouldBeDark = false;
+    
+    if (settings.theme === 'dark') {
+      shouldBeDark = true;
+    } else if (settings.theme === 'light') {
+      shouldBeDark = false;
+    } else {
+      // system theme
+      shouldBeDark = systemColorScheme === 'dark';
+    }
+    
+    setIsDarkMode(shouldBeDark);
+  };
+
+  const updateSettings = async (newSettings: Partial<AppSettings>) => {
+    try {
+      const updatedSettings = { ...settings, ...newSettings };
+      setSettings(updatedSettings);
+      await AsyncStorage.setItem('player-performance-settings', JSON.stringify(updatedSettings));
+      
+      // Update theme if theme setting changed
+      if (newSettings.theme) {
+        updateTheme(Appearance.getColorScheme());
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   const value = {

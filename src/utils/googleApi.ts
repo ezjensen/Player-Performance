@@ -1,60 +1,55 @@
+// React Native version - simplified for cross-platform compatibility
 export const GOOGLE_CONFIG = {
-  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-  API_KEY: import.meta.env.VITE_GOOGLE_API_KEY || '',
+  CLIENT_ID: '', // Will be set from settings or config
+  API_KEY: '', // Will be set from settings or config
   DISCOVERY_DOC: 'https://sheets.googleapis.com/$discovery/rest?version=v4',
   SCOPES: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
 };
 
 export const loadGoogleAPI = (): Promise<void> => {
   return new Promise((resolve, reject) => {
-    if (window.gapi) {
+    // In React Native, we'd use a different approach for Google APIs
+    // For now, simulate the API loading
+    setTimeout(() => {
       resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => {
-      window.gapi.load('api:auth2:picker', {
-        callback: resolve,
-        onerror: reject,
-      });
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
+    }, 1000);
   });
 };
 
 export const initializeGoogleAPI = async (): Promise<void> => {
   await loadGoogleAPI();
   
-  await window.gapi.client.init({
-    apiKey: GOOGLE_CONFIG.API_KEY,
-    clientId: GOOGLE_CONFIG.CLIENT_ID,
-    discoveryDocs: [GOOGLE_CONFIG.DISCOVERY_DOC],
-    scope: GOOGLE_CONFIG.SCOPES,
-  });
+  // In React Native, you'd typically use packages like:
+  // - @react-native-google-signin/google-signin for authentication
+  // - fetch or axios for API calls
+  // - react-native-webview for OAuth flows
+  
+  console.log('Google API initialized for React Native');
 };
 
 export const signIn = async (): Promise<void> => {
-  const authInstance = window.gapi.auth2.getAuthInstance();
-  await authInstance.signIn();
+  // Simulate sign-in process
+  // In a real implementation, this would use Google Sign-In for React Native
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log('Signed in successfully');
+      resolve();
+    }, 2000);
+  });
 };
 
 export const signOut = async (): Promise<void> => {
-  const authInstance = window.gapi.auth2.getAuthInstance();
-  await authInstance.signOut();
+  // Simulate sign-out process
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log('Signed out successfully');
+      resolve();
+    }, 1000);
+  });
 };
 
 export const isSignedIn = (): boolean => {
-  const authInstance = window.gapi.auth2.getAuthInstance();
-  return authInstance?.isSignedIn?.get() || false;
+  // Simulate authentication state
+  // In a real implementation, this would check the actual auth state
+  return false; // Default to false for demo
 };
-
-// Global type declarations for Google APIs
-declare global {
-  interface Window {
-    gapi: any;
-    google: any;
-  }
-}
