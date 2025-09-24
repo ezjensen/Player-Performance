@@ -12,12 +12,23 @@ A modern web application that automates the generation of individual PDF perform
 - 📈 **Progress Tracking** - Real-time processing status with detailed logging
 - 🔄 **Batch Processing** - Handles multiple players with rate limiting
 - 💾 **Comprehensive Logging** - All operations logged to Google Sheets
+- 🖥️ **Cross-Platform Desktop App** - Native Windows, Mac, and Linux applications
+- 🌐 **Web and Desktop Modes** - Run as web application or standalone desktop app
 
 ## Requirements
 
+### For Web Application
 - Node.js 16 or higher
 - Google Cloud Platform project with APIs enabled
-- Windows 10 or higher (as specified in requirements)
+
+### For Desktop Application
+- Node.js 16 or higher
+- Google Cloud Platform project with APIs enabled
+
+**Supported Operating Systems:**
+- **Windows**: Windows 10 or higher (x64)
+- **macOS**: macOS 10.15 (Catalina) or higher (Intel x64 and Apple Silicon arm64)  
+- **Linux**: Ubuntu 18.04+ / equivalent (x64) with AppImage support
 
 ## Setup
 
@@ -58,6 +69,7 @@ VITE_GOOGLE_API_KEY=your_google_api_key_here
 
 ### 4. Run the Application
 
+#### Web Application (Development)
 ```bash
 # Development server
 npm run dev
@@ -68,6 +80,46 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+#### Desktop Application
+
+##### Development Mode
+```bash
+# Run desktop app in development (requires development server)
+npm run electron
+```
+
+##### Production Build & Distribution
+
+**Build for all platforms:**
+```bash
+# Build distributable packages for all platforms
+npm run dist
+```
+
+**Build for specific platforms:**
+```bash
+# Windows (.exe installer and portable)
+npm run dist:win
+
+# macOS (.dmg and .zip)
+npm run dist:mac  
+
+# Linux (.AppImage and .deb)
+npm run dist:linux
+```
+
+The built applications will be available in the `release/` folder:
+- **Windows**: `.exe` installer and portable executable
+- **macOS**: `.dmg` disk image and `.zip` archive
+- **Linux**: `.AppImage` (universal) and `.deb` package
+
+##### Desktop Application Features
+- ✅ Native desktop experience with system integration
+- ✅ Offline capability once loaded
+- ✅ System notifications and native dialogs
+- ✅ Auto-updater support (configurable)
+- ✅ Cross-platform compatibility (Windows 10+, macOS 10.15+, Ubuntu 18.04+)
 
 ## Usage
 

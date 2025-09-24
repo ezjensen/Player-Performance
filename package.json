@@ -2,12 +2,19 @@
   "name": "player-performance",
   "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "echo 'Linting not configured yet'",
-    "test": "echo 'Tests not configured yet'"
+    "test": "echo 'Tests not configured yet'",
+    "electron": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux"
   },
   "keywords": [
     "pdf",
@@ -16,9 +23,66 @@
     "reports",
     "athletes"
   ],
-  "author": "",
+  "author": {
+    "name": "Player Performance Team",
+    "email": "support@playerperformance.app"
+  },
   "license": "GPL-3.0",
   "description": "Generate individual PDF performance reports for athletes from Google Sheets data",
+  "build": {
+    "appId": "com.playerperformance.app",
+    "productName": "Player Performance PDF Generator",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/main.js",
+      "node_modules/**/*"
+    ],
+    "publish": null,
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "lucide-react": "^0.544.0",
@@ -32,9 +96,14 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.0.0",
+    "electron": "^38.1.2",
+    "electron-builder": "^26.0.12",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "wait-on": "^9.0.1"
   }
 }
