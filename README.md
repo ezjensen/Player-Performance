@@ -140,9 +140,21 @@ The application includes built-in rate limiting:
 ## Security
 
 - OAuth 2.0 authentication ensures secure access
-- API keys are environment-based and not exposed
+- API keys are environment-based and not exposed in code
 - All operations are performed client-side
 - No sensitive data is stored on external servers
+
+### Important Security Notes
+
+⚠️ **Never commit credential files to the repository**
+- Do not add `*.json` credential files from Google Cloud Console
+- Use environment variables (`.env` file) for sensitive configuration
+- The `.gitignore` file is configured to prevent accidental commits of credential files
+
+✅ **Proper credential management:**
+- Store Google credentials in `.env` file (already ignored by git)
+- Use `VITE_GOOGLE_CLIENT_ID` and `VITE_GOOGLE_API_KEY` environment variables
+- Keep your Google Cloud Console credentials secure and private
 
 ## Error Handling
 
